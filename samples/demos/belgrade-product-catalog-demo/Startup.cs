@@ -1,4 +1,5 @@
-﻿using Belgrade.SqlClient.SqlDb;
+﻿using Belgrade.SqlClient;
+using Belgrade.SqlClient.SqlDb;
 using Belgrade.SqlClient.SqlDb.Rls;
 using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Hosting;
@@ -30,7 +31,7 @@ namespace ProductCatalog
             Configuration = builder.Build();
 #if NETCOREAPP1_0
             Log.Logger = new LoggerConfiguration()
-                .WriteTo.RollingFile(new Serilog.Formatting.Json.JsonFormatter(), System.IO.Path.Combine(env.ContentRootPath, "log-{Date}.ndjson"))
+                .WriteTo.RollingFile(new Serilog.Formatting.Json.JsonFormatter(), System.IO.Path.Combine(env.ContentRootPath, "logs\\log-{Date}.ndjson"))
                 .CreateLogger();
 #endif
 #if NET46
@@ -58,14 +59,14 @@ namespace ProductCatalog
             services.AddDbContext<ProductCatalogContext>(options => options.UseSqlServer(new SqlConnection(ConnString)));
 
             // Adding data access services/components.
-            services.AddTransient(
+            services.AddTransient<IQueryPipe>(
                 sp => new QueryPipe(new SqlConnection(ConnString))
-                            .AddRls("CompanyID",() => GetCompanyIdFromSession(sp))
+                           //.AddRls("CompanyID",() => GetCompanyIdFromSession(sp))
                 );
 
-            services.AddTransient(
+            services.AddTransient<ICommand>(
                 sp => new Command(new SqlConnection(ConnString))
-                            .AddRls("CompanyID", () => GetCompanyIdFromSession(sp))
+                           //.AddRls("CompanyID", () => GetCompanyIdFromSession(sp))
                 );
 
             //// Add framework services.
